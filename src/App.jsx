@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { decrementTime, reset, startStop, changeTime } from './store/timer.js'
+import { decrementTime, reset, startStop, changeTime } from './redux/timer.js'
 import { Timer } from './components/Timer.jsx'
 import { TimeSetter } from './components/TimeSetter.jsx'
 import AlarmSound from './assets/alarmSound.mp3'
