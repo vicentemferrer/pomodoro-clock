@@ -1,33 +1,64 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { decrementTime, reset, startStop, changeTime } from './store/timer.js'
+import { Timer } from './components/Timer.jsx'
+import { TimeSetter } from './components/TimeSetter.jsx'
+import AlarmSound from './assets/alarmSound.mp3'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { sessionTime, breakTime, timer } = useSelector(state => state.timer)
+  const dispatch = useDispatch()
+
+  function getAudio() {
+    return document.getElementById('beep')
+  }
+
+  function onReset() {
+    const audio = getAudio()
+    dispatch(reset())
+
+    audio.pause()
+    audio.currentTime = 0
+  }
+
+  function onDecrementTime() {
+    dispatch(decrementTime())
+  }
+
+  function onChangeTime(time, sessionType) {
+    dispatch(changeTime({ time, sessionType }))
+  }
+
+  useEffect(() => {
+    let timerID
+
+    if (!timer.timerRunning) return
+
+    if (timer.timerRunning) {
+      timerID = window.setInterval(onDecrementTime, 1000)
+    }
+
+    return () => {
+      window.clearInterval(timerID)
+    }
+  }, [timer.timerRunning])
+
+  useEffect(() => {
+    if (timer.time === 0) {
+      const audio = getAudio()
+      audio.play()
+    }
+  }, [timer.time])
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <Timer timer={timer} reset={onReset} startStop={startStop} dispatch={dispatch} />
+      <div id="controls-pad">
+        <TimeSetter type={"break"} time={breakTime} setTime={onChangeTime} />
+        <TimeSetter type={"session"} time={sessionTime} setTime={onChangeTime} />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <audio id='beep' src={AlarmSound} />
     </>
   )
 }
